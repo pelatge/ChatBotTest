@@ -1,16 +1,17 @@
 const { router, line } = require("bottender/router");
+let order = [];
+let summary_total_harga = 0;
 
 module.exports = async function App() {
   return router([
     line.follow(HandleFollow),
     line.unfollow(HandleUnfollow),
     line.message(HandleMessage),
-    line.postback(HandlePostBack)
+    line.postback(HandlePostBack),
   ]);
 };
 
 async function HandleFollow(context) {
-
   await context.sendText(
     `Wah, terima kasih ya ${String.fromCodePoint(
       0x100078
@@ -24,8 +25,48 @@ async function HandleUnfollow(context) {
   );
 }
 
-async function HandlePostBack(context){
-  await context.sendText(`Nah ada postback: ${context.event.payload}`);
+async function HandlePostBack(context) {
+  if (context.event.payload.split(" ").length > 1) {
+    const context_temp = context.event.payload.split(" ");
+    const menu_name = context_temp[0];
+    const menu_count = context_temp[1];
+    const menu_price = context_temp[2];
+    if (order.length === 0) {
+      let order_temp = {
+        name: menu_name,
+        count: menu_count,
+        price: menu_price,
+      };
+      order.push(order_temp);
+      await context.sendText(
+        `Berhasil menambahkan ${menu_name} sebanyak ${menu_count} ke keranjang\nKetik 'ringkasan' (tanpa kutip) untuk melihat detail pesanan`
+      );
+    } else {
+      let order_temp = {
+        name: menu_name,
+        count: menu_count,
+        price: menu_price,
+      };
+      let flag = false;
+      for (let i = 0; i < order.length; i++) {
+        if (order[i].name === order_temp.name) {
+          order[i].count++;
+          flag = true;
+          await context.sendText(
+            `${order[i].name} jumlahnya nambah 1 di keranjang\nKetik 'ringkasan' (tanpa kutip) untuk melihat detail pesanan`
+          );
+        }
+      }
+      if (flag === false) {
+        order.push(order_temp);
+        await context.sendText(
+          `Berhasil menambahkan ${menu_name} sebanyak ${menu_count} ke keranjang\nKetik 'ringkasan' (tanpa kutip) untuk melihat detail pesanan`
+        );
+      }
+    }
+  } else {
+    await context.sendText(`Oke siap kak, lanjutkan pesanan`);
+  }
 }
 
 async function HandleMessage(context) {
@@ -84,7 +125,7 @@ async function HandleMessage(context) {
                   },
                   {
                     type: "text",
-                    text: "Rp 15.000/6pcs",
+                    text: "Rp 15.000 (isi 6 pcs)",
                     wrap: true,
                     color: "#666666",
                     size: "sm",
@@ -105,7 +146,7 @@ async function HandleMessage(context) {
             action: {
               type: "postback",
               label: "BELI",
-              data: "Sushi 1",
+              data: "Sushi 1 15000",
             },
           },
         ],
@@ -169,7 +210,7 @@ async function HandleMessage(context) {
             action: {
               type: "postback",
               label: "BELI",
-              data: "Tempura 1",
+              data: "Tempura 1 10000",
             },
           },
         ],
@@ -183,9 +224,59 @@ async function HandleMessage(context) {
         tempuraMenu,
       ],
     });
+  } else if (context.event.text === "ringkasan") {
+    summary_total_harga = 0;
+    if (order.length === 0) {
+      await context.sendText(`Wah keranjang belanjanya masih kosong kak`);
+    } else {
+      await context.sendText(
+        `Berikut pesanan yang ada dikeranjang kakak sekarang ini`
+      );
+      for (let i = 0; i < order.length; i++) {
+        await context.sendText(
+          `${order[i].name}\nJumlah: ${
+            order[i].count
+          }\nHarga (harga satuan x jumlah yang dipesan): Rp ${numberWithCommas(
+            order[i].price * order[i].count
+          )}`
+        );
+        summary_total_harga += order[i].price * order[i].count;
+      }
+      context.replyButtonTemplate("This is a button template", {
+        thumbnailImageUrl:
+          "https://health.clevelandclinic.org/wp-content/uploads/sites/3/2019/06/cropped-GettyImages-643764514.jpg",
+        title: "Total Harga",
+        text: `Rp ${numberWithCommas(
+          summary_total_harga
+        )}\nYakin dengan pesanan anda?`,
+        actions: [
+          {
+            type: "location",
+            label: "Ya (Send location)",
+          },
+          {
+            type: "postback",
+            label: "Belum",
+            data: "belum",
+          },
+        ],
+      });
+    }
+  } else if(context.event.isLocation){
+    if(order.length === 0){
+      await context.sendText(`Yah keranjang pesanannya masih kosong kak, coba pilih-pilih menunya dulu dengan cara ketik 'pesan' (tanpa kutip)`)
+    } else{
+      await context.sendText(`Oke, kurir akan mengantarkan pesanan ke ${context.event.location.address}\n\nJangan lupa siapkan uang sebanyak Rp ${numberWithCommas(summary_total_harga)}. Terima kasih sudah memesan di DeMangan ini.`);
+      order = [];
+      summary_total_harga = 0;
+    }
   } else {
     salahKeywordHandler(context, `Wah salah keyword nih`);
   }
+}
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 async function salahKeywordHandler(context, message) {
