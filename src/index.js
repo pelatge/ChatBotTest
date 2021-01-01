@@ -68,6 +68,8 @@ async function HandlePostBack(context) {
     if(context.event.payload === "belum"){
       await context.sendText(`Oke siap kak, silahkan lanjutkan pesanan`);
     } else if(context.event.payload === "batal"){
+      summary_total_harga = 0;
+      order = [];
       await context.sendText(`Baik kak, keranjang belanja telah direset kembali`);
     }
   }
