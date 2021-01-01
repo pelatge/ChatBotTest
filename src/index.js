@@ -65,7 +65,11 @@ async function HandlePostBack(context) {
       }
     }
   } else {
-    await context.sendText(`Oke siap kak, lanjutkan pesanan`);
+    if(context.event.payload === "belum"){
+      await context.sendText(`Oke siap kak, silahkan lanjutkan pesanan`);
+    } else if(context.event.payload === "batal"){
+      await context.sendText(`Baik kak, keranjang belanja telah direset kembali`);
+    }
   }
 }
 
@@ -258,6 +262,11 @@ async function HandleMessage(context) {
             type: "postback",
             label: "Belum",
             data: "belum",
+          },
+          {
+            type: "postback",
+            label: "Batal",
+            data: "batal",
           },
         ],
       });
