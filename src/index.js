@@ -264,7 +264,7 @@ async function HandleMessage(context) {
     }
   } else if(context.event.isLocation){
     if(order.length === 0){
-      await context.sendText(`Yah keranjang pesanannya masih kosong kak, coba pilih-pilih menunya dulu dengan cara ketik 'pesan' (tanpa kutip)`)
+      await context.sendText(`Waduh keranjang pesanannya masih kosong kak, coba pilih-pilih menunya dulu dengan cara ketik 'pesan' (tanpa kutip)`)
     } else{
       await context.sendText(`Oke, kurir akan mengantarkan pesanan ke ${context.event.location.address}\n\nJangan lupa siapkan uang sebanyak Rp ${numberWithCommas(summary_total_harga)}. Terima kasih sudah memesan di DeMangan ini.`);
       order = [];
