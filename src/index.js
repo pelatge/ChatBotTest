@@ -404,7 +404,7 @@ async function HandleMessage(context) {
         kopiMenu,
       ],
     });
-  } else if (context.event.text === 'ringkasan') {
+  } else if (context.event.text.toLowerCase() === 'ringkasan') {
     summary_total_harga = 0;
     if (order.length === 0) {
       await context.sendText(
