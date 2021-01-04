@@ -94,7 +94,7 @@ async function HandlePostBack(context) {
 }
 
 async function HandleMessage(context) {
-  if (context.event.text === 'info') {
+  if (context.event.text.toLowerCase() === 'info') {
     await context.replyText(
       `DeMangan ini adalah aplikasi buatan Yehezkiel Gunawan sebagai submisi project dari kelas LINE Dicoding Academy kelas Chatbot.\n\nAplikasi ini dibuat dengan Node JS dengan bantuan library Bottender 1.4.\n\nKetik 'hitung'(tanpa kutip) agar bot bisa berhitung bersama kamu (counter akan bertambah 1 setiap kamu ketik kata 'hitung'). Tapi cuma sampe 5 aja ya, kasian takut kelelahan dia.\n\nKetik 'pesan' (tanpa kutip) apabila anda ingin memesan makanan/minuman yang bisa dikirim ke rumah anda.\n\nSilahkan gunakan LINE pada Android/Iphone device anda untuk mendapatkan full experience.`,
       {
